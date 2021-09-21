@@ -1,0 +1,9 @@
+binance:
+  apiKey: ${api-key}
+  secret: ${secret}
+
+spring:
+  security:
+    user:
+      name: ${user}
+      password: ${password}
