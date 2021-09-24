@@ -1,13 +1,13 @@
-package stylepatrick.binance.api.consumer.Resource;
+package stylepatrick.binance.api.consumer.resource;
 
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import stylepatrick.binance.api.consumer.Entity.CoinStats;
-import stylepatrick.binance.api.consumer.Entity.FullStats;
-import stylepatrick.binance.api.consumer.Service.BinanceApiService;
+import stylepatrick.binance.api.consumer.model.CoinStats;
+import stylepatrick.binance.api.consumer.model.FullStats;
+import stylepatrick.binance.api.consumer.service.BinanceApiService;
 
 import java.util.Map;
 

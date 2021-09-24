@@ -1,4 +1,4 @@
-package stylepatrick.binance.api.consumer.Config;
+package stylepatrick.binance.api.consumer.config;
 
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
@@ -10,11 +10,11 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 public class BinanceApiConfig {
 
-    private final AppConfig appConfig;
+    private final BinanceConfig binanceConfig;
 
     @Bean
     public BinanceApiRestClient createBinanceApiRestClient() {
-        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(appConfig.getApiKey(), appConfig.getSecret());
+        BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(binanceConfig.getApiKey(), binanceConfig.getSecret());
         return factory.newRestClient();
     }
 

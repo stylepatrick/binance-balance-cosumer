@@ -1,4 +1,4 @@
-package stylepatrick.binance.api.consumer.Entity;
+package stylepatrick.binance.api.consumer.model;
 
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,12 +1,12 @@
-package stylepatrick.binance.api.consumer.Service;
+package stylepatrick.binance.api.consumer.service;
 
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.domain.account.Account;
 import com.binance.api.client.domain.market.TickerPrice;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import stylepatrick.binance.api.consumer.Entity.CoinStats;
-import stylepatrick.binance.api.consumer.Entity.FullStats;
+import stylepatrick.binance.api.consumer.model.CoinStats;
+import stylepatrick.binance.api.consumer.model.FullStats;
 
 import java.util.ArrayList;
 import java.util.HashMap;

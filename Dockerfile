@@ -1,4 +1,4 @@
-FROM openjdk:16-jdk-alpine
+FROM openjdk:17-jdk-alpine
 ARG JAR_FILE
 ADD ${JAR_FILE} /app.jar
 

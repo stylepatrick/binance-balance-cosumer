@@ -1,4 +1,4 @@
-package stylepatrick.binance.api.consumer.Config;
+package stylepatrick.binance.api.consumer.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
