@@ -10,4 +10,4 @@ A scheduler can automatically send the wallet balance via a telegram bot to you.
 
 ### DockerHub
 
-https://hub.docker.com/repository/docker/stylepatrick/binance-balance-consumer
+https://hub.docker.com/repository/docker/stylepatrick/binance-api-consumer
