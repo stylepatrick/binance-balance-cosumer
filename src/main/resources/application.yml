@@ -10,4 +10,4 @@ spring:
 
 telegram:
   token: ${token}
-  chatId: ${charId}
+  chatId: ${chatId}
