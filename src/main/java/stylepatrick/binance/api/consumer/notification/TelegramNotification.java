@@ -21,7 +21,7 @@ public class TelegramNotification {
     private final TelegramConfig telegramConfig;
     private final BinanceApiService binanceApiService;
 
-    @Scheduled(cron = "0 0 8,17 * * *")
+    @Scheduled(cron = "0 0 5,18 * * *")
     public void sendBalanceToTelegram() {
         FullStats fullStats = this.binanceApiService.getFullStats();
         StringBuilder coinsAmount = new StringBuilder();
