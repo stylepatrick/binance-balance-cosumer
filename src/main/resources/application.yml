@@ -11,3 +11,17 @@ spring:
 telegram:
   token: ${token}
   chatId: ${chatId}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: 8081
+  endpoint:
+    health:
+      show-details: always
+
+info:
+  version: @version@
