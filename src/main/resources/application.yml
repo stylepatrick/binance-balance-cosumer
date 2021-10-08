@@ -11,6 +11,7 @@ spring:
 telegram:
   token: ${token}
   chatId: ${chatId}
+  scheduler: ${scheduler}
 
 management:
   endpoints:
@@ -18,7 +19,7 @@ management:
       exposure:
         include: "*"
   server:
-    port: 8081
+    port: ${actuatorPort}
   endpoint:
     health:
       show-details: always

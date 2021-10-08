@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>stylepatrick</groupId>
 	<artifactId>binance-api-consumer</artifactId>
-	<version>0.0.5</version>
+	<version>0.0.6</version>
 	<name>binance-balance-consumer</name>
 	<description>Binance Balance Consumer</description>
 	<properties>

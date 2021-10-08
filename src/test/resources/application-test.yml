@@ -11,3 +11,18 @@ spring:
 telegram:
   token: token
   chatId: chatId
+  scheduler: "0 0 5,18 * * *"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  server:
+    port: 8081
+  endpoint:
+    health:
+      show-details: always
+
+info:
+  version: 1.0
