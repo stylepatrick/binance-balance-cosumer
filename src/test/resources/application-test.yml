@@ -1,0 +1,13 @@
+binance:
+  apiKey: apiKey
+  secret: secret
+
+spring:
+  security:
+    user:
+      name: user
+      password: password
+
+telegram:
+  token: token
+  chatId: chatId

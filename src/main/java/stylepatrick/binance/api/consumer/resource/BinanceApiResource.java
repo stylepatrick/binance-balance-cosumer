@@ -20,6 +20,11 @@ public class BinanceApiResource {
     private final BinanceApiService binanceApiService;
     private final TelegramNotification telegramNotification;
 
+    @GetMapping(value = "test")
+    public ResponseEntity<String> testApi() {
+        return ResponseEntity.ok("Running!");
+    }
+
     @GetMapping(value = "stats/coin")
     public ResponseEntity<Map<String, CoinStats>> getStatsPerCoin() {
         return ResponseEntity.ok(binanceApiService.getStatsPerCoin());
