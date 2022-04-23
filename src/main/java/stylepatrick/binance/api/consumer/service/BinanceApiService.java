@@ -8,9 +8,8 @@ import org.springframework.stereotype.Service;
 import stylepatrick.binance.api.consumer.model.CoinStats;
 import stylepatrick.binance.api.consumer.model.FullStats;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.TreeMap;
 
 @Service
 @AllArgsConstructor
@@ -18,15 +17,15 @@ public class BinanceApiService {
 
     private final BinanceApiRestClient binanceApiRestClient;
 
-    public Map<String, CoinStats> getStatsPerCoin() {
+    public TreeMap<String, CoinStats> getStatsPerCoin() {
         Account account = binanceApiRestClient.getAccount();
         return buildCoinStatsHashMap(account);
     }
 
     public FullStats getFullStats() {
-        ArrayList<Double> sumPerCoinsInUsdt = new ArrayList<>();
+        LinkedList<Double> sumPerCoinsInUsdt = new LinkedList<>();
         Account account = binanceApiRestClient.getAccount();
-        Map<String, CoinStats> coinStatsHashMap = buildCoinStatsHashMap(account);
+        TreeMap<String, CoinStats> coinStatsHashMap = buildCoinStatsHashMap(account);
         coinStatsHashMap.forEach((s, coinStats) -> sumPerCoinsInUsdt.add(coinStats.getSumInUsdt()));
 
         double sum = 0.0;
@@ -36,8 +35,8 @@ public class BinanceApiService {
         return new FullStats(sum, coinStatsHashMap);
     }
 
-    private Map<String, CoinStats> buildCoinStatsHashMap(Account account) {
-        Map<String, CoinStats> coinStatsHashMap = new HashMap<>();
+    private TreeMap<String, CoinStats> buildCoinStatsHashMap(Account account) {
+        TreeMap<String, CoinStats> coinStatsHashMap = new TreeMap<>();
         account.getBalances().forEach(assetBalance -> {
             if (Double.parseDouble(assetBalance.getFree()) > 0.0) {
                 String shortName = assetBalance.getAsset();
