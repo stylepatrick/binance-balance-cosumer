@@ -1,66 +1,140 @@
 package stylepatrick.binance.api.consumer.service;
 
-import com.binance.api.client.BinanceApiRestClient;
-import com.binance.api.client.domain.account.Account;
-import com.binance.api.client.domain.market.TickerPrice;
+
+import com.binance.connector.client.impl.SpotClientImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import stylepatrick.binance.api.consumer.model.CoinStats;
-import stylepatrick.binance.api.consumer.model.FullStats;
+import stylepatrick.binance.api.consumer.model.*;
 
-import java.util.LinkedList;
-import java.util.TreeMap;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class BinanceApiService {
 
-    private final BinanceApiRestClient binanceApiRestClient;
+    private final SpotClientImpl spotClientImpl;
 
-    public TreeMap<String, CoinStats> getStatsPerCoin() {
-        Account account = binanceApiRestClient.getAccount();
-        return buildCoinStatsHashMap(account);
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public TotalAssetStatsDto getTotalAssetStats() {
+        List<SpotAsset> spotAssetList = getAllSpotAssets();
+        List<StackingAsset> stackingAssetList = getAllStackingAssets();
+        List<SavingAsset> savingAssetList = getAllSavingAssets();
+
+        List<Asset> fullAssetList = new ArrayList<>();
+        fullAssetList.addAll(spotAssetList);
+        fullAssetList.addAll(stackingAssetList);
+        fullAssetList.addAll(savingAssetList);
+
+        HashSet<TickerSymbolPrice> tickerSymbolPriceList = getTickerSymbolPrice(fullAssetList);
+
+        lookupTickerPrice(tickerSymbolPriceList, spotAssetList);
+        lookupTickerPrice(tickerSymbolPriceList, stackingAssetList);
+        lookupTickerPrice(tickerSymbolPriceList, savingAssetList);
+
+        List<AssetStatsDto> assetStatsDtoList = new ArrayList<>();
+        assetStatsDtoList.add(new AssetStatsDto(sumOfUsdtFromAssetList(spotAssetList), AssetType.SPOT, spotAssetList));
+        assetStatsDtoList.add(new AssetStatsDto(sumOfUsdtFromAssetList(stackingAssetList), AssetType.STACKING, stackingAssetList));
+        assetStatsDtoList.add(new AssetStatsDto(sumOfUsdtFromAssetList(savingAssetList), AssetType.SAVING, savingAssetList));
+
+        return new TotalAssetStatsDto(sumOfUsdtFromAssetList(fullAssetList), assetStatsDtoList);
     }
 
-    public FullStats getFullStats() {
-        LinkedList<Double> sumPerCoinsInUsdt = new LinkedList<>();
-        Account account = binanceApiRestClient.getAccount();
-        TreeMap<String, CoinStats> coinStatsHashMap = buildCoinStatsHashMap(account);
-        coinStatsHashMap.forEach((s, coinStats) -> sumPerCoinsInUsdt.add(coinStats.getSumInUsdt()));
+    private List<SpotAsset> getAllSpotAssets() {
+        List<SpotAsset> spotAssetList;
 
-        double sum = 0.0;
-        for (Double i : sumPerCoinsInUsdt)
-            sum = sum + i;
+        LinkedHashMap<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "SPOT");
 
-        return new FullStats(sum, coinStatsHashMap);
-    }
-
-    private TreeMap<String, CoinStats> buildCoinStatsHashMap(Account account) {
-        TreeMap<String, CoinStats> coinStatsHashMap = new TreeMap<>();
-        account.getBalances().forEach(assetBalance -> {
-            if (Double.parseDouble(assetBalance.getFree()) > 0.0) {
-                String shortName = assetBalance.getAsset();
-                if (shortName.startsWith("LD")) {
-                    shortName = shortName.substring(2);
-                }
-                if (shortName.equals("BETH")) {
-                    shortName = "ETH";
-                }
-                if (shortName.equals("NFT")) {
-                    shortName = "USDT";
-                }
-                if (!shortName.equals("USDT")) {
-                    TickerPrice price = binanceApiRestClient.getPrice(shortName + "USDT");
-                    CoinStats balance = new CoinStats(Double.parseDouble(assetBalance.getFree()), Double.parseDouble(price.getPrice()));
-                    if (coinStatsHashMap.containsKey(shortName)) {
-                        coinStatsHashMap.get(shortName).setAmount(coinStatsHashMap.get(shortName).getAmount() + Double.parseDouble(assetBalance.getFree()));
-                        coinStatsHashMap.replace(shortName, new CoinStats(coinStatsHashMap.get(shortName).getAmount(), Double.parseDouble(price.getPrice())));
-                    } else {
-                        coinStatsHashMap.put(shortName, balance);
+        try {
+            spotAssetList = objectMapper.readValue(
+                    spotClientImpl.createWallet().getUserAsset(parameters),
+                    new TypeReference<>() {
                     }
-                }
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return spotAssetList;
+    }
+
+    private List<StackingAsset> getAllStackingAssets() {
+        List<StackingAsset> stackingAssetList;
+
+        LinkedHashMap<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("product", "STAKING");
+        try {
+            stackingAssetList = objectMapper.readValue(
+                    spotClientImpl.createStaking().getPosition(parameters),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return stackingAssetList;
+    }
+
+    private List<SavingAsset> getAllSavingAssets() {
+        List<SavingAsset> savingAssetList;
+
+        LinkedHashMap<String, Object> parameters = new LinkedHashMap<>();
+        try {
+            savingAssetList = objectMapper.readValue(
+                    spotClientImpl.createSavings().flexibleProductPosition(parameters),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return savingAssetList;
+    }
+
+    private HashSet<TickerSymbolPrice> getTickerSymbolPrice(List<Asset> assetList) {
+        HashSet<TickerSymbolPrice> tickerSymbolPriceLookup = new HashSet<>();
+
+        HashSet<String> uniqueAssets = new HashSet<>();
+        assetList.forEach(position -> uniqueAssets.add(position.getAsset() + "USDT"));
+
+        uniqueAssets.forEach(ticker -> {
+            LinkedHashMap<String, Object> parameters = new LinkedHashMap<>();
+            parameters.put("symbol", ticker);
+            try {
+                tickerSymbolPriceLookup.add(objectMapper.readValue(spotClientImpl.createMarket().tickerSymbol(parameters), TickerSymbolPrice.class));
+            } catch (Exception e) {
+                System.out.println(ticker + " - pair doesnt exist");
             }
         });
-        return coinStatsHashMap;
+
+        return tickerSymbolPriceLookup;
+    }
+
+    private void lookupTickerPrice(HashSet<TickerSymbolPrice> tickerSymbolPriceList, List<? extends Asset> assetList) {
+        assetList.forEach(position -> tickerSymbolPriceList.forEach(tickerSymbolPrice -> {
+            String ticker = position.getAsset();
+            if (ticker.equals("BETH")) {
+                ticker = "ETH";
+            }
+            if (tickerSymbolPrice.symbol().startsWith(ticker)) {
+                position.setAmountInUsdt(new BigDecimal(position.getAmount()).multiply(new BigDecimal(tickerSymbolPrice.price())).setScale(2, RoundingMode.HALF_UP));
+            }
+        }));
+        Asset.sort(assetList);
+    }
+
+    private BigDecimal sumOfUsdtFromAssetList(List<? extends Asset> assetList) {
+        return assetList
+                .stream()
+                .map(Asset::getAmountInUsdt)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

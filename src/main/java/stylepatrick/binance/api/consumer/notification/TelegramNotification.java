@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import stylepatrick.binance.api.consumer.config.TelegramConfig;
-import stylepatrick.binance.api.consumer.model.FullStats;
+import stylepatrick.binance.api.consumer.model.TotalAssetStatsDto;
 import stylepatrick.binance.api.consumer.service.BinanceApiService;
 
 import java.io.BufferedInputStream;
@@ -23,16 +23,34 @@ public class TelegramNotification {
 
     @Scheduled(cron = "${telegram.scheduler}")
     public void sendBalanceToTelegram() {
-        FullStats fullStats = this.binanceApiService.getFullStats();
-        StringBuilder coinsAmount = new StringBuilder();
-        fullStats.getCoins().forEach((s, coinStats) -> coinsAmount.append(("<b>" + s + "</b>: " + roundToTwoDecimals(coinStats.getSumInUsdt()) + "$ (" + roundToTwoDecimals(coinStats.getAmount()) + ") " + "\n")));
-        sendToTelegram("<b>Wallet Balance: " + roundToTwoDecimals(fullStats.getAmount()) + "$</b>\n\n" + coinsAmount);
-    }
+        TotalAssetStatsDto totalAssetStatsDto = this.binanceApiService.getTotalAssetStats();
+        StringBuilder telegramMessage = new StringBuilder();
+        telegramMessage
+                .append("<b>Wallet Balance: ")
+                .append(totalAssetStatsDto.totAmountInUsdt())
+                .append("$</b>\n\n");
+        totalAssetStatsDto.assetStatsDtoList().forEach(assetStatsDto -> {
+            telegramMessage
+                    .append("<b><i>")
+                    .append(assetStatsDto.assetType().toString())
+                    .append(": ")
+                    .append(assetStatsDto.totAmountInUsdt())
+                    .append("$</i></b>\n");
+            assetStatsDto.assetList().forEach(asset -> telegramMessage
+                    .append("<b>")
+                    .append(asset.getAsset())
+                    .append("</b>: ")
+                    .append(asset.getAmountInUsdt())
+                    .append("$ (")
+                    .append(asset.getAmount())
+                    .append(") ")
+                    .append("\n")
+            );
+            telegramMessage.append("\n");
 
-    private double roundToTwoDecimals(double value) {
-        return Math.round(value * 100.0) / 100.0;
+        });
+        sendToTelegram(telegramMessage.toString());
     }
-
 
     private void sendToTelegram(String text) {
         String urlString = "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s&parse_mode=HTML";

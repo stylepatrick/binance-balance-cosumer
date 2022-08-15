@@ -88,7 +88,7 @@ class ApplicationTests {
     @Test
     @WithMockUser(username = "${user}", password = "${password}")
     public void mockMvcTestApiCoinStats() throws Exception {
-        this.mockMvc.perform(get("/api/balance/stats/coin")).andExpect(status().isOk());
+        this.mockMvc.perform(get("/api/balance/stats/full")).andExpect(status().isOk());
     }
 
 }
