@@ -3,10 +3,22 @@ binance:
   secret: ${secret}
 
 spring:
+  datasource:
+    url: ${db_url}
+    username: ${db_user}
+    password: ${db_password}
+    driver-class-name: org.postgresql.Driver
   security:
     user:
       name: ${user}
       password: ${password}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
 
 telegram:
   token: ${token}
@@ -25,4 +37,4 @@ management:
       show-details: always
 
 info:
-  version: @version@
+  version: '@project.version@'

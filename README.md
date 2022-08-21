@@ -1,5 +1,5 @@
 # binance-balance-cosumer
- Spring Boot 2 REST API Consumer for Binance. Used to get spot, stacking and saving balance of coins/token from Binance account. Basic Auth used for security. 
+ Spring Boot 2 REST API Consumer for Binance. Used to get spot, stacking and saving balance of coins/token from Binance account. For historical analysis balances are stored to Database storage. Basic Auth used for security.
  
 ### Endpoints:
 - api/balance/stats/full -> returns stats of all tokens/coins + detail amount for each coin
@@ -7,6 +7,10 @@
 
 ### Telegram Notification
 A scheduler can automatically send the wallet balance via a telegram bot to you.
+
+### Database Persistent (PostgresDB)
+With the help of JPA Hibernate auto generation, tables and views will be created to store balance data for historical analysis.
+For more details check resources/schema.sql file and BinanceBalance entity.
 
 ### Tests
 Test resource which checks if the API is secured and the connection to the Binance API works. 

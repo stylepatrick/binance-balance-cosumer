@@ -7,23 +7,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import stylepatrick.binance.api.consumer.entity.BinanceBalance;
 import stylepatrick.binance.api.consumer.model.*;
+import stylepatrick.binance.api.consumer.repository.BinanceBalanceRepository;
 
+import javax.transaction.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class BinanceApiService {
 
     private final SpotClientImpl spotClientImpl;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final BinanceBalanceRepository binanceBalanceRepository;
 
+    @Transactional
     public TotalAssetStatsDto getTotalAssetStats() {
         List<SpotAsset> spotAssetList = getAllSpotAssets();
         List<StackingAsset> stackingAssetList = getAllStackingAssets();
@@ -44,6 +45,8 @@ public class BinanceApiService {
         assetStatsDtoList.add(new AssetStatsDto(sumOfUsdtFromAssetList(spotAssetList), AssetType.SPOT, spotAssetList));
         assetStatsDtoList.add(new AssetStatsDto(sumOfUsdtFromAssetList(stackingAssetList), AssetType.STACKING, stackingAssetList));
         assetStatsDtoList.add(new AssetStatsDto(sumOfUsdtFromAssetList(savingAssetList), AssetType.SAVING, savingAssetList));
+
+        storeToDatabase(fullAssetList);
 
         return new TotalAssetStatsDto(sumOfUsdtFromAssetList(fullAssetList), assetStatsDtoList);
     }
@@ -136,5 +139,20 @@ public class BinanceApiService {
                 .stream()
                 .map(Asset::getAmountInUsdt)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private void storeToDatabase(List<Asset> fullAssetList) {
+        Date date = new Date();
+        List<BinanceBalance> binanceBalanceList = new ArrayList<>();
+        fullAssetList.forEach(asset -> binanceBalanceList.add(
+                new BinanceBalance(
+                        asset.getAsset(),
+                        new BigDecimal(asset.getAmount()),
+                        asset.getAmountInUsdt(),
+                        asset.getAssetType(),
+                        date
+                )
+        ));
+        binanceBalanceRepository.saveAll(binanceBalanceList);
     }
 }
