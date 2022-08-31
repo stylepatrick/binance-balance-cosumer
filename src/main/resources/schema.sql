@@ -53,7 +53,7 @@ FROM binance_balance
 GROUP BY binance_balance.asset, binance_balance.crdt;
 
 --- AVG per day ---
-create view binance_balance_asset_avg_daily(to_char, avg_in_usdt, asset) as
+create or replace view binance_balance_asset_avg_daily(to_char, avg_in_usdt, asset) as
 SELECT DISTINCT to_char(asset_request.crdt, 'YYYY-MM-DD'::text) AS to_char,
                 avg(asset_request.sum)                          AS avg_in_usdt,
                 asset_request.asset
