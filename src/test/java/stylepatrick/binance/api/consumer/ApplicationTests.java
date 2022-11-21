@@ -43,10 +43,17 @@ class ApplicationTests {
     }
 
     @Test
+    public void fullStatsUnauthorized() throws Exception {
+        this.mockMvc.perform(get("/api/balance/stats/full")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @WithMockUser(username = "${user}", password = "${password}")
-    public void fullStats() throws Exception {
+    public void fullStatsAuthorized() throws Exception {
         this.mockMvc.perform(get("/api/balance/stats/full")).andExpect(status().isOk());
         assertFalse(binanceBalanceRepository.findAll().isEmpty());
     }
+
+
 
 }
